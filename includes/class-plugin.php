@@ -44,7 +44,7 @@ class Plugin implements Hooked {
 
 		$this->init_plugin_metadata();
 
-		$this->components['replace_content_webhook'] = new Handle_Replace_Content();
+		$this->components['replace_content_webhook'] = new Handle_Replace_Content( $this->logger );
 	}
 
 
