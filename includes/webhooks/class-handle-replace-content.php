@@ -3,11 +3,20 @@
 namespace Ainsys\Connector\Content\Webhooks;
 
 use Ainsys\Connector\Master\Hooked;
+use Ainsys\Connector\Master\Logger;
 use Ainsys\Connector\Master\Webhook_Handler;
 
 class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
-	public function __construct() {
+	/**
+	 * @var \Ainsys\Connector\Master\Logger
+	 */
+	protected Logger $logger;
+
+
+	public function __construct( Logger $logger ) {
+
+		$this->logger = $logger;
 	}
 
 
@@ -42,6 +51,13 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	public function handler( string $action, array $data, int $object_id ): string {
 
 		$response = 'Action not registered';
+
+		$this->logger::save_log_information(
+			$object_id,
+			$action,
+			$data['pageId'],
+			serialize( $data )
+		);
 
 		switch ( $action ) {
 			case 'CREATE':
@@ -81,9 +97,18 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			$page = get_post( (int) $data['pageId'] );
 
+			$update = null;
+
 			if ( $page && ( 'post' === $page->post_type || 'page' === $page->post_type ) ) {
-				update_post_meta( $page->ID, '_ainsys_entity_data', $data );
+				$update = update_post_meta( $page->ID, '_ainsys_entity_data', $data );
 			}
+
+			$this->logger::save_log_information(
+				$site_id,
+				'page_name: ' . $page->post_name . '_ainsys_entity_data',
+				serialize( $data ),
+				$update
+			);
 
 			restore_current_blog();
 
