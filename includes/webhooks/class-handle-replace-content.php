@@ -41,8 +41,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 */
 	public function handler( string $action, array $data, int $object_id ): string {
 
-		$data    = (array) $data;
-		$message = 'Action not registered';
+		$response = 'Action not registered';
 
 		switch ( $action ) {
 			case 'CREATE':
@@ -51,9 +50,9 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 					$this->update_entity_data( $data );
 
-					$message = 'The action has been completed successfully. Content imported';
+					$response = 'The action has been completed successfully. Content imported';
 				} else {
-					$message = 'Page id is missing';
+					$response = 'Page id is missing';
 				}
 
 				break;
@@ -61,7 +60,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 		}
 
-		return $message;
+		return $response;
 	}
 
 
