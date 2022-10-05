@@ -33,7 +33,7 @@ ____
 ____
 
 
-# :exclamation: **Обязательные требования к данным в таблице  [Google Sheets](https://docs.google.com/spreadsheets)**
+## :exclamation: **Обязательные требования к данным в таблице  [Google Sheets](https://docs.google.com/spreadsheets)**
 
 1. Данные для подмены указываются в формате `{string}`. Как на сайте, так и в таблице Гугл. В **Коннекторе** системы [AINSYS](https://app.ainsys.com/), формируется `JSON` файл с аналогичной структурой например: `"{string}": "some-example"`
 
