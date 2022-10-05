@@ -6,7 +6,7 @@ The plugin is designed to replace the content lines on the site. It works on the
 
 ____
 
-### Данный способо замены контента предполагает собой **Наличие  [Google Sheets (Таблицы Гугл)](https://docs.google.com/spreadsheets)**, в которых указывются необходимые строки и контент который должен подменяться
+#### Данный способо замены контента предполагает собой **Наличие  [Google Sheets (Таблицы Гугл)](https://docs.google.com/spreadsheets)**, в которых указывются необходимые строки и контент который должен подменяться
 ____
 
     Алгоритм передачи данных Plugin AINSYS Connector Replace Content
