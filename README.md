@@ -6,16 +6,16 @@ The plugin is designed to replace the content lines on the site. It works on the
 
 ____
 
-#### :white_check_mark: Данный способо замены контента предполагает собой **Наличие  [Google Sheets (Таблицы Гугл)](https://docs.google.com/spreadsheets)**, в которых указывются необходимые строки и контент который должен подменяться
+#### :white_check_mark: Данный способ замены контента предполагает собой **Наличие  [Google Sheets (Таблицы Гугл)](https://docs.google.com/spreadsheets)**, в которых указывются необходимые строки и контент который должен подменяться
 ____
 
 ### :exclamation: :exclamation: **Обязательные требования к данным в таблице  [Google Sheets](https://docs.google.com/spreadsheets)**
 
    1) Данные для подмены указываются в формате `{string}`. Как на сайте, так и в таблице Гугл. В **Коннекторе** системы [AINSYS](https://app.ainsys.com/), формируется `JSON` файл с аналогичной структурой например: `"{string}": "some-example"`
 
-   2) :exclamation: :exclamation: :exclamation: В таблицах Гугл, **обязательно** должен быть указан **`ID`** страницы с сайта, которая предназначена для подмены (редактирования) **контента**. Для этого в таблице Гугл **обязательно** должно быть создано соотвествующее поле с именем: **`"pageId"`**
+   2) :exclamation: :exclamation: :exclamation: В таблицах Гугл, **обязательно** должен быть указан **`ID`** страницы с сайта, которая предназначена для подмены (редактирования) **контента**. Для этого в таблице Гугл **обязательно** должно быть создано соответствующее поле с именем: **`"pageId"`**
 
-   3) :exclamation: :exclamation: :exclamation: Обзязательно должен быть язык сайта в формате **`/RU-ru`**, в соотвествующем поле `pageLang` в  [Google Sheets](https://docs.google.com/spreadsheets)
+   3) :exclamation: :exclamation: :exclamation: Обзязательно должен быть язык сайта в формате **`/RU-ru`**, в соответствующем поле `pageLang` в  [Google Sheets](https://docs.google.com/spreadsheets)
 
 ____
 
