@@ -43,20 +43,21 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 	/**
 	 * @param  string $action
-	 * @param  array  $data
+	 * @param         $data
 	 * @param  int    $object_id
 	 *
 	 * @return string
 	 */
-	public function handler( string $action, array $data, int $object_id ): string {
+	public function handler( string $action, $data, int $object_id ): string {
 
+		$data     = (array) $data;
 		$response = 'Action not registered';
 
 		$this->logger::save_log_information(
 			$object_id,
 			$action,
-			$data['pageId'],
-			serialize( $data )
+			serialize( $data['pageId'] ),
+			''
 		);
 
 		switch ( $action ) {
@@ -105,7 +106,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			$this->logger::save_log_information(
 				$site_id,
-				'page_name: ' . $page->post_name . '_ainsys_entity_data',
+				serialize( 'page_name: ' . $page->post_name . '_ainsys_entity_data' ),
 				serialize( $data ),
 				$update
 			);
