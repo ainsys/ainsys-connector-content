@@ -198,19 +198,25 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 * @param  string $text
 	 *
 	 * @return string
+	 * @throws \JsonException
 	 */
 	protected function get_data_file( string $text ): string {
 
 		$file = get_field( 'json_file' ) ? trim( get_field( 'json_file' ) ) : '';
 
-		if ( $file ) {
-			$arrContextOptions = [
+		if ( $file && file_exists( $file )  ) {
+			$options = [
 				"ssl" => [
 					"verify_peer"      => false,
 					"verify_peer_name" => false,
 				],
 			];
-			$json = json_decode( file_get_contents( $file, false, stream_context_create( $arrContextOptions ) ), true );
+
+			$json = json_decode(
+				file_get_contents( $file, false, stream_context_create( $options ) ),
+				true,
+				512,
+				JSON_THROW_ON_ERROR );
 
 			$keys   = [];
 			$values = [];
