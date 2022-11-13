@@ -150,6 +150,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 *
 	 * @param  string $text - text to search/replace.
 	 *
+	 * @throws \JsonException
 	 * @package ainsys
 	 */
 	public function replace_content( string $text ): string {
@@ -202,34 +203,41 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 */
 	protected function get_data_file( string $text ): string {
 
-		$file = get_field( 'json_file' ) ? trim( get_field( 'json_file' ) ) : '';
+		$file_id   = get_field( 'json_file' ) ? trim( get_field( 'json_file' ) ) : '';
+		$json_file = get_attached_file( $file_id );
 
-		if ( $file && file_exists( $file )  ) {
-			$options = [
-				"ssl" => [
-					"verify_peer"      => false,
-					"verify_peer_name" => false,
-				],
-			];
-
-			$json = json_decode(
-				file_get_contents( $file, false, stream_context_create( $options ) ),
-				true,
-				512,
-				JSON_THROW_ON_ERROR );
-
-			$keys   = [];
-			$values = [];
-
-			foreach ( $json as $key => $value ) {
-				$keys[]   = $key;
-				$values[] = trim( str_replace( '\n', '', $value ) );
-			}
-
-			return str_replace( $keys, $values, $text );
+		if ( ! $json_file ) {
+			return $text;
 		}
 
-		return $text;
+		if ( ! file_exists( $json_file ) ) {
+			return $text;
+		}
+
+		$options = [
+			"ssl" => [
+				"verify_peer"      => false,
+				"verify_peer_name" => false,
+			],
+		];
+
+		$json = json_decode(
+			file_get_contents( $json_file, false, stream_context_create( $options ) ),
+			true,
+			512,
+			JSON_THROW_ON_ERROR
+		);
+
+		$keys   = [];
+		$values = [];
+
+		foreach ( $json as $key => $value ) {
+			$keys[]   = $key;
+			$values[] = trim( str_replace( '\n', '', $value ) );
+		}
+
+		return str_replace( $keys, $values, $text );
+
 	}
 
 }
