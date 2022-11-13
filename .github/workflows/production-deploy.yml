@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     name: Build project
+    if: ${{ github.event.pull_request.merged }}
     runs-on: "ubuntu-latest"
     steps:
       - name: Checkout code
@@ -54,8 +55,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: 70.32.23.102
-          username: kir@ainsys.com
-          password: banan184
+          username: deploy_prod@ainsys.com
+          password: h$432pqjMDG+
           server-dir: /wp-content/plugins/ainsys-connector-content/
           exclude: |
             **/.git*
