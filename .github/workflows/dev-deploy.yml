@@ -55,8 +55,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
           server: 70.32.23.102
-          username: kir@ainsys.com
-          password: banan184
+          username: deploy_stage
+          password: Tt6Q{wT?U#L[
           server-dir: /wp-content/plugins/ainsys-connector-content/
           exclude: |
             **/.git*
