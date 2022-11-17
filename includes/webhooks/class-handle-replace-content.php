@@ -2,6 +2,7 @@
 
 namespace Ainsys\Connector\Content\Webhooks;
 
+use Ainsys\Connector\Master\Core;
 use Ainsys\Connector\Master\Hooked;
 use Ainsys\Connector\Master\Logger;
 use Ainsys\Connector\Master\Webhook_Handler;
@@ -13,9 +14,15 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 */
 	protected Logger $logger;
 
+	/**
+	 * @var Core
+	 */
+	private Core $core;
 
-	public function __construct( Logger $logger ) {
 
+	public function __construct( Core $core, Logger $logger ) {
+
+		$this->core   = $core;
 		$this->logger = $logger;
 	}
 
@@ -35,7 +42,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 	public function register_webhook_handler( $handlers = [] ) {
 
-		$handlers['AINSYS_CMS_main'] = [ $this, 'handler' ];
+		$handlers['content'] = [ $this, 'handler' ];
 
 		return $handlers;
 	}
@@ -51,13 +58,17 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	public function handler( string $action, $data, int $object_id ): string {
 
 		$data     = (array) $data;
-		$response = 'Action not registered';
+		$response = __( 'Action not registered', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
 		$this->logger::save_log_information(
-			$object_id,
-			$action,
-			serialize( $data['pageId'] ),
-			''
+			[
+				'object_id'       => 0,
+				'entity'          => 'content',
+				'request_action'  => $action,
+				'request_type'    => 'incoming',
+				'request_data'    => serialize( $data['pageId'] ),
+				'server_response' => serialize( $data ),
+			]
 		);
 
 		switch ( $action ) {
@@ -105,10 +116,14 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 			}
 
 			$this->logger::save_log_information(
-				$site_id,
-				serialize( 'page_name: ' . $page->post_name . '_ainsys_entity_data' ),
-				serialize( $data ),
-				$update
+				[
+					'object_id'       => $update,
+					'entity'          => 'content',
+					'request_action'  => 'UPDATE',
+					'request_type'    => 'incoming',
+					'request_data'    => serialize( $data ),
+					'server_response' => 'The action has been completed successfully. Content imported',
+				]
 			);
 
 			restore_current_blog();

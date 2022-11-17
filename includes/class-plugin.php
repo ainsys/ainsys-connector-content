@@ -2,8 +2,9 @@
 
 namespace Ainsys\Connector\Content;
 
+
 use Ainsys\Connector\Content\Webhooks\Handle_Replace_Content;
-use Ainsys\Connector\Master\Core;
+use Ainsys\Connector\Master\DI_Container;
 use Ainsys\Connector\Master\Hooked;
 use Ainsys\Connector\Master\Logger;
 use Ainsys\Connector\Master\Plugin_Common;
@@ -15,36 +16,16 @@ class Plugin implements Hooked {
 	use Plugin_Common;
 
 	/**
-	 * @var Core
+	 * @var \Ainsys\Connector\Master\DI_Container
 	 */
-	private Core $core;
-
-	/**
-	 * @var Logger
-	 */
-	private Logger $logger;
-
-	/**
-	 * @var Settings
-	 */
-	private Settings $settings;
-
-	/**
-	 * @var Admin_UI
-	 */
-	private Admin_UI $admin_ui;
+	protected DI_Container $di_container;
 
 
-	public function __construct( Core $core, Logger $logger, Settings $settings, Admin_UI $admin_ui ) {
-
-		$this->core     = $core;
-		$this->logger   = $logger;
-		$this->settings = $settings;
-		$this->admin_ui = $admin_ui;
+	public function __construct() {
 
 		$this->init_plugin_metadata();
-
-		$this->components['replace_content_webhook'] = new Handle_Replace_Content( $this->logger );
+		$this->di_container = DI_Container::get_instance();
+		$this->components['replace_content_webhook'] = $this->di_container->resolve( Handle_Replace_Content::class );
 	}
 
 
