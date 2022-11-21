@@ -76,7 +76,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 			case 'UPDATE':
 				if ( $data['pageId'] && $this->is_local( $data['pageLang'] ) ) {
 
-					$this->update_entity_data( $data );
+					$this->update_entity_data( $data , $action);
 
 					$response = 'The action has been completed successfully. Content imported';
 				} else {
@@ -94,10 +94,11 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 	/**
 	 * @param  array $data
+	 * @param        $action
 	 *
 	 * @return void
 	 */
-	protected function update_entity_data( array $data ): void {
+	protected function update_entity_data( array $data, $action ): void {
 
 		$sites = get_sites( [
 			'fields'        => 'ids',
@@ -121,7 +122,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 					[
 						'object_id'       => $page->ID,
 						'entity'          => 'content',
-						'request_action'  => 'UPDATE',
+						'request_action'  => $action,
 						'request_type'    => 'updated data',
 						'request_data'    => serialize( $current_data ),
 						'server_response' => serialize( $update_data ),
