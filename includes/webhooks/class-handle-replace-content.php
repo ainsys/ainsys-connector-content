@@ -65,8 +65,8 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 				'object_id'       => 0,
 				'entity'          => 'content',
 				'request_action'  => $action,
-				'request_type'    => 'incoming',
-				'request_data'    => serialize( $data['pageId'] ),
+				'request_type'    => 'incoming data',
+				'request_data'    => '',
 				'server_response' => serialize( $data ),
 			]
 		);
@@ -109,26 +109,25 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			$page = get_post( (int) $data['pageId'] );
 
-			$update      = null;
 			$update_data = null;
 
 			if ( $page && ( 'post' === $page->post_type || 'page' === $page->post_type ) ) {
 				$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
 				$update_data  = array_replace( $current_data, $data );
 
-				$update = update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
-			}
+				update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
 
-			$this->logger::save_log_information(
-				[
-					'object_id'       => $update,
-					'entity'          => 'content',
-					'request_action'  => 'UPDATE',
-					'request_type'    => 'incoming',
-					'request_data'    => serialize( $data ),
-					'server_response' => serialize( $update_data ),
-				]
-			);
+				$this->logger::save_log_information(
+					[
+						'object_id'       => $page->ID,
+						'entity'          => 'content',
+						'request_action'  => 'UPDATE',
+						'request_type'    => 'updated data',
+						'request_data'    => serialize( $current_data ),
+						'server_response' => serialize( $update_data ),
+					]
+				);
+			}
 
 			restore_current_blog();
 
