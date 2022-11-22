@@ -6,7 +6,7 @@ namespace Ainsys\Connector\Content;
  * Plugin Name:       AINSYS connector content
  * Plugin URI: https://app.ainsys.com/
  * Description: Plugin for replacing content on a WordPress site.
- * Version:           1.0.4
+ * Version:           1.0.5
  * Author:            AINSYS
  * Author URI:        https://app.ainsys.com/
  * License: GPLv2 or later
