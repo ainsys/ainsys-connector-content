@@ -105,8 +105,6 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			restore_current_blog();
 
-
-
 		}
 	}
 
