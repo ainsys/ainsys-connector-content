@@ -74,15 +74,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		switch ( $action ) {
 			case 'CREATE':
 			case 'UPDATE':
-				if ( $data['pageId'] && $this->is_local( $data['pageLang'] ) ) {
-
 					$this->update_entity_data( $data, $action );
-
-					$response = 'The action has been completed successfully. Content imported';
-				} else {
-					$response = 'Page id is missing';
-				}
-
 				break;
 			case 'delete':
 
@@ -112,8 +104,6 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 			return $this->update( $data, $action );
 
 			restore_current_blog();
-
-
 
 		}
 	}
