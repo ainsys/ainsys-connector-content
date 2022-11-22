@@ -76,7 +76,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 			case 'UPDATE':
 				if ( $data['pageId'] && $this->is_local( $data['pageLang'] ) ) {
 
-					$this->update_entity_data( $data , $action);
+					$this->update_entity_data( $data, $action );
 
 					$response = 'The action has been completed successfully. Content imported';
 				} else {
@@ -96,9 +96,10 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 * @param  array $data
 	 * @param        $action
 	 *
-	 * @return void
 	 */
-	protected function update_entity_data( array $data, $action ): void {
+	protected function update_entity_data( array $data, $action ){
+
+
 
 		$sites = get_sites( [
 			'fields'        => 'ids',
@@ -108,33 +109,80 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		foreach ( $sites as $site_id ) {
 			switch_to_blog( $site_id );
 
-			$page = get_post( (int) $data['pageId'] );
-
-			$update_data = null;
-
-			if ( $page && ( 'post' === $page->post_type || 'page' === $page->post_type ) ) {
-				$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
-				$update_data  = array_replace( $current_data, $data );
-
-				update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
-
-				$this->logger::save_log_information(
-					[
-						'object_id'       => $page->ID,
-						'entity'          => 'content',
-						'request_action'  => $action,
-						'request_type'    => 'updated data',
-						'request_data'    => serialize( $current_data ),
-						'server_response' => serialize( $update_data ),
-					]
-				);
-			}
+			return $this->update( $data, $action );
 
 			restore_current_blog();
+
+
 
 		}
 	}
 
+	/**
+	 * @param  array $data
+	 * @param        $action
+	 * @param        $message
+	 *
+	 * @return string|void
+	 */
+	protected function update( array $data, $action) {
+
+		if ( empty( $data['pageId'] ) ) {
+			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+		}
+
+		if ( empty( $data['pageLang'] ) && $this->is_local( $data['pageLang'] ) ) {
+			$response = __( 'Page lang is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+		}
+
+		$page = get_post( (int) $data['pageId'] );
+
+		$update_data = null;
+
+		if ( $page && ( 'post' === $page->post_type || 'page' === $page->post_type ) ) {
+			$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
+
+			if ( empty( $current_data ) ) {
+				$update_data = $data;
+			} else {
+				$update_data = array_replace( $current_data, $data );
+			}
+
+			update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
+
+			$this->logger::save_log_information(
+				[
+					'object_id'       => $page->ID,
+					'entity'          => 'content',
+					'request_action'  => $action,
+					'request_type'    => 'updated data',
+					'request_data'    => serialize( $current_data ),
+					'server_response' => serialize( $update_data ),
+				]
+			);
+
+			$response = __( 'The action has been completed successfully. Content imported', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+		} else {
+
+			$response = __( 'Error. The page was not found or it does not exist', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+
+			$this->logger::save_log_information(
+				[
+					'object_id'       => 0,
+					'entity'          => 'user',
+					'request_action'  => 'CREATE',
+					'request_type'    => 'incoming',
+					'request_data'    => serialize( $data ),
+					'server_response' => serialize( $response ),
+					'error'           => 1,
+				]
+			);
+
+
+		}
+
+		return $response;
+	}
 
 	protected function is_local( $local ): bool {
 
@@ -258,5 +306,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		return str_replace( $keys, $values, $text );
 
 	}
+
+
 
 }
