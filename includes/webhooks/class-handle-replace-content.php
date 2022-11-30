@@ -74,7 +74,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		switch ( $action ) {
 			case 'CREATE':
 			case 'UPDATE':
-					$this->update_entity_data( $data, $action );
+				$response = $this->update_entity_data( $data, $action );
 				break;
 			case 'delete':
 
@@ -90,8 +90,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 *
 	 * @return string|void
 	 */
-	protected function update_entity_data( array $data, $action ){
-
+	protected function update_entity_data( array $data, $action ) {
 
 
 		$sites = get_sites( [
@@ -116,8 +115,8 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 *
 	 * @return string|void
 	 */
-	protected function update( array $data, $action) {
-		$response = '';
+	protected function update( array $data, $action ) {
+
 		if ( empty( $data['pageId'] ) ) {
 			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 		}
@@ -169,11 +168,11 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 				]
 			);
 
-
 		}
 
 		return $response;
 	}
+
 
 	protected function is_local( $local ): bool {
 
@@ -297,7 +296,5 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		return str_replace( $keys, $values, $text );
 
 	}
-
-
 
 }
