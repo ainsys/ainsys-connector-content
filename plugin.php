@@ -6,7 +6,7 @@ namespace Ainsys\Connector\Content;
  * Plugin Name:       AINSYS Connector Headless CMS
  * Plugin URI: https://app.ainsys.com/
  * Description: Plugin for replacing content on a WordPress site.
- * Version:           1.0.5
+ * Version:           1.0.6
  * Author:            AINSYS
  * Author URI:        https://app.ainsys.com/
  * License: GPLv2 or later
