@@ -88,6 +88,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	 * @param  array $data
 	 * @param        $action
 	 *
+	 * @return string|void
 	 */
 	protected function update_entity_data( array $data, $action ){
 
@@ -108,15 +109,15 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		}
 	}
 
+
 	/**
 	 * @param  array $data
 	 * @param        $action
-	 * @param        $message
 	 *
 	 * @return string|void
 	 */
 	protected function update( array $data, $action) {
-
+		$response = '';
 		if ( empty( $data['pageId'] ) ) {
 			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 		}
@@ -159,9 +160,9 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 			$this->logger::save_log_information(
 				[
 					'object_id'       => 0,
-					'entity'          => 'user',
-					'request_action'  => 'CREATE',
-					'request_type'    => 'incoming',
+					'entity'          => 'content',
+					'request_action'  => $action,
+					'request_type'    => 'updated data',
 					'request_data'    => serialize( $data ),
 					'server_response' => serialize( $response ),
 					'error'           => 1,

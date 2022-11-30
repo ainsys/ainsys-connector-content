@@ -3,10 +3,10 @@
 namespace Ainsys\Connector\Content;
 
 /**
- * Plugin Name:       AINSYS connector content
+ * Plugin Name:       AINSYS Connector Headless CMS
  * Plugin URI: https://app.ainsys.com/
  * Description: Plugin for replacing content on a WordPress site.
- * Version:           1.0.5
+ * Version:           1.0.6
  * Author:            AINSYS
  * Author URI:        https://app.ainsys.com/
  * License: GPLv2 or later
@@ -54,20 +54,6 @@ function check_if_master_plugin_is_active() {
 
 				$class   = 'notice notice-error is-dismissible';
 				$message = __( 'Please install and activate `Ainsys WP Connector Master Plugin` first' );
-
-				printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
-			}
-		);
-	}
-
-	if ( ! function_exists( 'WC' ) ) {
-		// show admin notice on error.
-		add_action(
-			'admin_notices',
-			function () {
-
-				$class   = 'notice notice-error is-dismissible';
-				$message = __( 'Please install and activate `Woocommerce` plugin ' );
 
 				printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 			}
