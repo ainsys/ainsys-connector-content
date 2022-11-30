@@ -118,16 +118,44 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 	protected function update( array $data, $action ) {
 
 		if ( empty( $data['pageId'] ) ) {
+
 			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+
+			$this->logger::save_log_information(
+				[
+					'object_id'       => 0,
+					'entity'          => 'content',
+					'request_action'  => $action,
+					'request_type'    => 'updated data',
+					'request_data'    => serialize( $data ),
+					'server_response' => serialize( $response ),
+					'error'           => 1,
+				]
+			);
+
+			return $response;
+
 		}
 
 		if ( empty( $data['pageLang'] ) && $this->is_local( $data['pageLang'] ) ) {
 			$response = __( 'Page lang is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+
+			$this->logger::save_log_information(
+				[
+					'object_id'       => 0,
+					'entity'          => 'content',
+					'request_action'  => $action,
+					'request_type'    => 'updated data',
+					'request_data'    => serialize( $data ),
+					'server_response' => serialize( $response ),
+					'error'           => 1,
+				]
+			);
+
+			return $response;
 		}
 
 		$page = get_post( (int) $data['pageId'] );
-
-		$update_data = null;
 
 		if ( $page && ( 'post' === $page->post_type || 'page' === $page->post_type ) ) {
 			$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
