@@ -36,7 +36,7 @@ class Plugin implements Hooked {
 	 */
 	public function init_hooks() {
 
-		//add_filter( 'ainsys_status_list', [ $this, 'add_status_of_component' ], 10, 1 );
+		add_filter( 'ainsys_status_list', [ $this, 'add_status_of_component' ], 10, 1 );
 
 		foreach ( $this->components as $component ) {
 			if ( $component instanceof Hooked ) {
@@ -55,9 +55,9 @@ class Plugin implements Hooked {
 
 		$status_items['content'] = [
 			'title'  => __( 'AINSYS Connector Headless CMS', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
-			'active' => false,
-			'label_success' => __( 'Valid', AINSYS_CONNECTOR_TEXTDOMAIN ),
-			'label_error'   => __( 'Invalid', AINSYS_CONNECTOR_TEXTDOMAIN ),
+			'slug'         => 'ainsys-connector-content',
+			'active'        => $this->is_plugin_active( 'ainsys-connector-content/plugin.php' ),
+			'install'        => $this->is_plugin_install( 'ainsys-connector-content/plugin.php' ),
 		];
 
 		return $status_items;
