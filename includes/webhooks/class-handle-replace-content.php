@@ -60,7 +60,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		$data     = (array) $data;
 		$response = __( 'Action not registered', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-		$this->logger::save_log_information(
+		$this->logger::save(
 			[
 				'object_id'       => 0,
 				'entity'          => 'content',
@@ -121,7 +121,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-			$this->logger::save_log_information(
+			$this->logger::save(
 				[
 					'object_id'       => 0,
 					'entity'          => 'content',
@@ -140,7 +140,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		if ( empty( $data['pageLang'] ) && $this->is_local( $data['pageLang'] ) ) {
 			$response = __( 'Page lang is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-			$this->logger::save_log_information(
+			$this->logger::save(
 				[
 					'object_id'       => 0,
 					'entity'          => 'content',
@@ -168,7 +168,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
 
-			$this->logger::save_log_information(
+			$this->logger::save(
 				[
 					'object_id'       => $page->ID,
 					'entity'          => 'content',
@@ -184,7 +184,7 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			$response = __( 'Error. The page was not found or it does not exist', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-			$this->logger::save_log_information(
+			$this->logger::save(
 				[
 					'object_id'       => 0,
 					'entity'          => 'content',
