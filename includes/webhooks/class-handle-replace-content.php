@@ -6,25 +6,11 @@ use Ainsys\Connector\Master\Core;
 use Ainsys\Connector\Master\Hooked;
 use Ainsys\Connector\Master\Logger;
 use Ainsys\Connector\Master\Webhook_Handler;
+use Ainsys\Connector\Master\Webhooks\Handle;
 
-class Handle_Replace_Content implements Hooked, Webhook_Handler {
+class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
-	/**
-	 * @var \Ainsys\Connector\Master\Logger
-	 */
-	protected Logger $logger;
-
-	/**
-	 * @var Core
-	 */
-	private Core $core;
-
-
-	public function __construct( Core $core, Logger $logger ) {
-
-		$this->core   = $core;
-		$this->logger = $logger;
-	}
+	protected static string $entity = 'content';
 
 
 	/**
@@ -42,93 +28,106 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 	public function register_webhook_handler( $handlers = [] ) {
 
-		$handlers['content'] = [ $this, 'handler' ];
+		$handlers[ self::$entity ] = [ $this, 'handler' ];
 
 		return $handlers;
 	}
 
 
 	/**
-	 * @param  string $action
-	 * @param         $data
-	 * @param  int    $object_id
+	 * @param $data
+	 * @param $action
+	 * @param $object_id
 	 *
 	 * @return string
 	 */
-	public function handler( string $action, $data, int $object_id ): string {
+	protected function update( $data, $action, $object_id ): string {
 
-		$data     = (array) $data;
-		$response = __( 'Action not registered', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+		$response = '';
 
-		$this->logger::save(
+		if ( is_multisite() ) {
+
+			$sites = get_sites( [
+				'fields'        => 'ids',
+				'no_found_rows' => false,
+			] );
+
+			foreach ( $sites as $site_id ) {
+				switch_to_blog( $site_id );
+
+				$response = $this->update_entity_data( $data, $action );
+
+				restore_current_blog();
+
+			}
+
+		} else {
+			$response = $this->update_entity_data( $data, $action );
+		}
+
+		return $response;
+
+	}
+
+
+	protected function create( array $data, string $action ): string {
+
+		// TODO: Implement create() method.
+
+		$response = __( 'Error: It is impossible to create content, the CREATE method does not work', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+
+		Logger::save(
 			[
 				'object_id'       => 0,
-				'entity'          => 'content',
+				'entity'          => self::$entity,
 				'request_action'  => $action,
-				'request_type'    => 'incoming data',
-				'request_data'    => '',
-				'server_response' => serialize( $data ),
+				'request_type'    => 'create data',
+				'request_data'    => $data,
+				'server_response' => $response,
+				'error'           => 1,
 			]
 		);
-
-		switch ( $action ) {
-			case 'CREATE':
-			case 'UPDATE':
-				$response = $this->update_entity_data( $data, $action );
-				break;
-			case 'delete':
-
-		}
 
 		return $response;
 	}
 
 
-	/**
-	 * @param  array $data
-	 * @param        $action
-	 *
-	 * @return string|void
-	 */
-	protected function update_entity_data( array $data, $action ) {
+	protected function delete( $object_id, $data, $action ): string {
 
+		// TODO: Implement delete() method.
 
-		$sites = get_sites( [
-			'fields'        => 'ids',
-			'no_found_rows' => false,
-		] );
+		$response = __( 'Error: It is impossible to delete content, the DELETE method does not work', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-		foreach ( $sites as $site_id ) {
-			switch_to_blog( $site_id );
+		Logger::save(
+			[
+				'object_id'       => 0,
+				'entity'          => self::$entity,
+				'request_action'  => $action,
+				'request_type'    => 'delete data',
+				'request_data'    => $data,
+				'server_response' => $response,
+				'error'           => 1,
+			]
+		);
 
-			return $this->update( $data, $action );
-
-			restore_current_blog();
-
-		}
+		return $response;
 	}
 
 
-	/**
-	 * @param  array $data
-	 * @param        $action
-	 *
-	 * @return string|void
-	 */
-	protected function update( array $data, $action ) {
+	protected function update_entity_data( array $data, $action ) {
 
 		if ( empty( $data['pageId'] ) ) {
 
 			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-			$this->logger::save(
+			Logger::save(
 				[
 					'object_id'       => 0,
-					'entity'          => 'content',
+					'entity'          => self::$entity,
 					'request_action'  => $action,
 					'request_type'    => 'updated data',
-					'request_data'    => serialize( $data ),
-					'server_response' => serialize( $response ),
+					'request_data'    => $data,
+					'server_response' => $response,
 					'error'           => 1,
 				]
 			);
@@ -140,14 +139,14 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 		if ( empty( $data['pageLang'] ) && $this->is_local( $data['pageLang'] ) ) {
 			$response = __( 'Page lang is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-			$this->logger::save(
+			Logger::save(
 				[
 					'object_id'       => 0,
-					'entity'          => 'content',
+					'entity'          => self::$entity,
 					'request_action'  => $action,
 					'request_type'    => 'updated data',
-					'request_data'    => serialize( $data ),
-					'server_response' => serialize( $response ),
+					'request_data'    => $data,
+					'server_response' => $response,
 					'error'           => 1,
 				]
 			);
@@ -168,30 +167,30 @@ class Handle_Replace_Content implements Hooked, Webhook_Handler {
 
 			update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
 
-			$this->logger::save(
+			Logger::save(
 				[
 					'object_id'       => $page->ID,
-					'entity'          => 'content',
+					'entity'          => self::$entity,
 					'request_action'  => $action,
 					'request_type'    => 'updated data',
-					'request_data'    => serialize( $current_data ),
-					'server_response' => serialize( $update_data ),
+					'request_data'    => $current_data,
+					'server_response' => $update_data,
 				]
 			);
 
 			$response = __( 'The action has been completed successfully. Content imported', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 		} else {
 
-			$response = __( 'Error. The page was not found or it does not exist', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+			$response = __( 'Error: The page was not found or it does not exist', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
 
-			$this->logger::save(
+			Logger::save(
 				[
 					'object_id'       => 0,
-					'entity'          => 'content',
+					'entity'          => self::$entity,
 					'request_action'  => $action,
 					'request_type'    => 'updated data',
-					'request_data'    => serialize( $data ),
-					'server_response' => serialize( $response ),
+					'request_data'    => $data,
+					'server_response' => $response,
 					'error'           => 1,
 				]
 			);
