@@ -36,8 +36,6 @@ class Plugin implements Hooked {
 	 */
 	public function init_hooks() {
 
-		add_filter( 'ainsys_status_list', [ $this, 'add_status_of_component' ], 10, 1 );
-
 		foreach ( $this->components as $component ) {
 			if ( $component instanceof Hooked ) {
 				$component->init_hooks();
@@ -45,22 +43,5 @@ class Plugin implements Hooked {
 		}
 	}
 
-
-	/**
-	 * Generates a component status to show on the General tab of the master plugin settings.
-	 *
-	 * @return array
-	 */
-	public function add_status_of_component( $status_items = [] ) {
-
-		$status_items['content'] = [
-			'title'  => __( 'AINSYS Connector Headless CMS', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
-			'slug'         => 'ainsys-connector-content',
-			'active'        => $this->is_plugin_active( 'ainsys-connector-content/plugin.php' ),
-			'install'        => $this->is_plugin_install( 'ainsys-connector-content/plugin.php' ),
-		];
-
-		return $status_items;
-	}
 
 }
