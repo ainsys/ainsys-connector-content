@@ -26,6 +26,7 @@ class Plugin implements Hooked {
 		$this->init_plugin_metadata();
 		$this->di_container = DI_Container::get_instance();
 		$this->components['replace_content_webhook'] = $this->di_container->resolve( Handle_Replace_Content::class );
+		$this->components['replace_content_cpt'] = $this->di_container->resolve( CPT::class );
 	}
 
 
