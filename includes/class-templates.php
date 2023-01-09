@@ -17,7 +17,7 @@ class Templates implements Hooked {
 	}
 
 
-	public function add_meta_box_review( $post_type ): void {
+	public function add_meta_box_review( ): void {
 
 		add_meta_box(
 			'ainsys_template_metabox',
@@ -38,7 +38,6 @@ class Templates implements Hooked {
 	 * @return void
 	 */
 	public function save_metabox( int $post_id ): void {
-
 
 		if ( ! isset( $_POST['ainsys_template_inner_nonce'] ) ) {
 			return;
@@ -64,13 +63,20 @@ class Templates implements Hooked {
 			return;
 		}
 
-		if ( empty( $_POST[ self::$fields ] ) ) {
-			return;
+		$fields  = $this->get_fields( $post_id );
+
+		$_fields = array_map( 'sanitize_text_field', $_POST );
+
+		foreach ( $fields as $key => $val ) {
+
+			$key_post = self::$fields . '_' .$key;
+
+			if ( isset( $_fields[$key_post] ) ) {
+				update_post_meta( $post_id, $key_post, $_fields[$key_post] );
+			} else {
+				delete_post_meta( $post_id, $key_post );
+			}
 		}
-
-		$_ainsys_fields = array_map( 'sanitize_text_field', $_POST[ self::$fields ] );
-
-		update_post_meta( $post_id, self::$fields, $_ainsys_fields );
 	}
 
 
@@ -82,28 +88,48 @@ class Templates implements Hooked {
 
 		wp_nonce_field( 'ainsys_template_inner', 'ainsys_template_inner_nonce' );
 
-		$value_ainsys_fields = get_post_meta( $post->ID, self::$fields, true );
+		$post_id = (int) $post->ID;
+		$fields  = $this->get_fields( $post_id );
 
-		$fields = [
+		foreach ( $fields as $key => $field ) {
+			$this->metabox_field( $key, $field, $field['value'] );
+		}
+
+	}
+
+
+	/**
+	 * @param $post_id
+	 *
+	 * @return array[]
+	 */
+	private function get_fields( $post_id ): array {
+
+		return [
 			'template_name'    => [
 				'label'             => __( 'Template Name', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
 				'required'          => true,
 				'type'              => 'text',
 				'class'             => [ 'ainsys-template-input' ],
-				'value'             => $value_ainsys_fields ? $value_ainsys_fields['template_name'] : '',
+				'value'             => get_post_meta( $post_id, self::$fields . '_template_name', true ) ? : '',
+				'custom_attributes' => [ 'style' => 'width:100%' ],
+			],
+			'template_role'    => [
+				'label'             => __( 'Template Role', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
+				'required'          => true,
+				'type'              => 'text',
+				'class'             => [ 'ainsys-template-input' ],
+				'value'             => get_post_meta( $post_id, self::$fields . '_template_role', true ) ? : '',
 				'custom_attributes' => [ 'style' => 'width:100%' ],
 			],
 			'template_default' => [
-				'label' => __( 'Template Default', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
-				'type'  => 'checkbox',
-				'class' => [ 'ainsys-template-checkbox' ],
-				'value' => $value_ainsys_fields ? $value_ainsys_fields['template_default'] : 0,
+				'label'   => __( 'Template Default', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
+				'type'    => 'checkbox',
+				'class'   => [ 'ainsys-template-checkbox' ],
+				'default' => 'no',
+				'value'   => get_post_meta( $post_id, self::$fields . '_template_default', true ) ? : 0,
 			],
 		];
-
-		foreach ( $fields as $key => $field ) {
-			$this->metabox_field( $key, $field, $field['value'] );
-		}
 
 	}
 
@@ -191,7 +217,7 @@ class Templates implements Hooked {
 		switch ( $args['type'] ) {
 			case 'textarea':
 				$field .= sprintf(
-					'<textarea name="%s[%s]" class="input-text %s" id="%s" placeholder="%s" %s%s%s>%s</textarea>',
+					'<textarea name="%s_%s" class="input-text %s" id="%s" placeholder="%s" %s%s%s>%s</textarea>',
 					self::$fields,
 					esc_attr( $key ),
 					esc_attr( implode( ' ', $args['input_class'] ) ),
@@ -205,7 +231,7 @@ class Templates implements Hooked {
 				break;
 			case 'checkbox':
 				$field = sprintf(
-					'<label class="checkbox %s" %s><input type="%s" class="input-checkbox %s" name="%s[%s]" id="%s" value="1" %s /> %s%s</label>',
+					'<label class="checkbox %s" %s><input type="%s" class="input-checkbox %s" name="%s_%s" id="%s" value="1" %s /> %s%s</label>',
 					implode( ' ', $args['label_class'] ),
 					implode( ' ', $custom_attributes ),
 					esc_attr( $args['type'] ),
@@ -232,7 +258,7 @@ class Templates implements Hooked {
 			case 'url':
 			case 'tel':
 				$field .= sprintf(
-					'<input type="%s" class="input-text %s" name="%s[%s]" id="%s" placeholder="%s"  value="%s" %s />',
+					'<input type="%s" class="input-text %s" name="%s_%s" id="%s" placeholder="%s"  value="%s" %s />',
 					esc_attr( $args['type'] ),
 					esc_attr( implode( ' ', $args['input_class'] ) ),
 					self::$fields,
@@ -245,7 +271,7 @@ class Templates implements Hooked {
 				break;
 			case 'hidden':
 				$field .= sprintf(
-					'<input type="%s" class="input-hidden %s" name="%s[%s]" id="%s" value="%s" %s />',
+					'<input type="%s" class="input-hidden %s" name="%s_%s" id="%s" value="%s" %s />',
 					esc_attr( $args['type'] ),
 					esc_attr( implode( ' ', $args['input_class'] ) ),
 					self::$fields,
@@ -278,7 +304,7 @@ class Templates implements Hooked {
 					}
 
 					$field .= sprintf(
-						'<select name="%s[%s]" id="%s" class="select %s" %s data-placeholder="%s">%s</select>',
+						'<select name="%s_%s" id="%s" class="select %s" %s data-placeholder="%s">%s</select>',
 						self::$fields,
 						esc_attr( $key ),
 						esc_attr( $args['id'] ),
@@ -296,7 +322,7 @@ class Templates implements Hooked {
 				if ( ! empty( $args['options'] ) ) {
 					foreach ( $args['options'] as $option_key => $option_text ) {
 						$field .= sprintf(
-							'<input type="radio" class="input-radio %s" value="%s" name="%s[%s]" %s id="%s_%s"%s />',
+							'<input type="radio" class="input-radio %s" value="%s" name="%s_%s" %s id="%s_%s"%s />',
 							esc_attr( implode( ' ', $args['input_class'] ) ),
 							esc_attr( $option_key ),
 							self::$fields,
