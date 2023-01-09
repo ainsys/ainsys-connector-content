@@ -2,7 +2,6 @@
 
 namespace Ainsys\Connector\Content\Webhooks;
 
-use Ainsys\Connector\Master\Core;
 use Ainsys\Connector\Master\Hooked;
 use Ainsys\Connector\Master\Logger;
 use Ainsys\Connector\Master\Webhook_Handler;
@@ -34,6 +33,35 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	}
 
 
+	protected function create( array $data, string $action ): string {
+
+		$response = '';
+
+		if ( is_multisite() ) {
+
+			$sites = get_sites( [
+				'fields'        => 'ids',
+				'no_found_rows' => false,
+			] );
+
+			foreach ( $sites as $site_id ) {
+				switch_to_blog( $site_id );
+
+				$response = $this->create_entity_data( $data, $action );
+
+				restore_current_blog();
+
+			}
+
+		} else {
+			$response = $this->create_entity_data( $data, $action );
+		}
+
+		return $response;
+
+	}
+
+
 	/**
 	 * @param $data
 	 * @param $action
@@ -55,40 +83,18 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 			foreach ( $sites as $site_id ) {
 				switch_to_blog( $site_id );
 
-				$response = $this->update_entity_data( $data, $action );
+				$response = $this->update_entity_data( $data, $action, $object_id );
 
 				restore_current_blog();
 
 			}
 
 		} else {
-			$response = $this->update_entity_data( $data, $action );
+			$response = $this->update_entity_data( $data, $action, $object_id );
 		}
 
 		return $response;
 
-	}
-
-
-	protected function create( array $data, string $action ): string {
-
-		// TODO: Implement create() method.
-
-		$response = __( 'Error: It is impossible to create content, the CREATE method does not work', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
-
-		Logger::save(
-			[
-				'object_id'       => 0,
-				'entity'          => self::$entity,
-				'request_action'  => $action,
-				'request_type'    => 'create data',
-				'request_data'    => $data,
-				'server_response' => $response,
-				'error'           => 1,
-			]
-		);
-
-		return $response;
 	}
 
 
@@ -96,108 +102,129 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 		// TODO: Implement delete() method.
 
-		$response = __( 'Error: It is impossible to delete content, the DELETE method does not work', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
-
-		Logger::save(
-			[
-				'object_id'       => 0,
-				'entity'          => self::$entity,
-				'request_action'  => $action,
-				'request_type'    => 'delete data',
-				'request_data'    => $data,
-				'server_response' => $response,
-				'error'           => 1,
-			]
+		return $this->handle_error(
+			$data,
+			'',
+			__( 'Error: It is impossible to delete content, the DELETE method does not work', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
+			self::$entity,
+			$action
 		);
-
-		return $response;
 	}
 
 
-	protected function update_entity_data( array $data, $action ) {
+	//TODO: сделать проверку на главную страницу
+	protected function create_entity_data( array $data, $action ): string {
 
-		if ( empty( $data['pageId'] ) ) {
+		if ( empty( $data['pageUrl'] ) ) {
+			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl' );
 
-			$response = __( 'Page id is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
-
-			Logger::save(
-				[
-					'object_id'       => 0,
-					'entity'          => self::$entity,
-					'request_action'  => $action,
-					'request_type'    => 'updated data',
-					'request_data'    => $data,
-					'server_response' => $response,
-					'error'           => 1,
-				]
-			);
-
-			return $response;
-
+			return $this->handle_error( $data, '', $error, self::$entity, $action );
 		}
 
-		if ( empty( $data['pageLang'] ) && $this->is_local( $data['pageLang'] ) ) {
-			$response = __( 'Page lang is missing', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
+		if ( empty( $data['pageRole'] ) ) {
+			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole' );
 
-			Logger::save(
-				[
-					'object_id'       => 0,
-					'entity'          => self::$entity,
-					'request_action'  => $action,
-					'request_type'    => 'updated data',
-					'request_data'    => $data,
-					'server_response' => $response,
-					'error'           => 1,
-				]
-			);
-
-			return $response;
+			return $this->handle_error( $data, '', $error, self::$entity, $action );
 		}
 
-		$page = get_post( (int) $data['pageId'] );
+		if ( empty( $data['pageLang'] ) ) {
+			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang' );
 
-		if ( $page && ( 'post' === $page->post_type || 'page' === $page->post_type ) ) {
-			$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
+			return $this->handle_error( $data, '', $error, self::$entity, $action );
+		}
 
-			if ( empty( $current_data ) ) {
-				$update_data = $data;
-			} else {
-				$update_data = array_replace( $current_data, $data );
+		[ $page_slug, $page ] = $this->get_page( $data['pageUrl'] );
+
+		if ( $page ) {
+			return $this->handle_error( $data, '', __( 'Error: Page with this URL already exist', AINSYS_CONNECTOR_TEXTDOMAIN ), self::$entity, $action );
+		}
+
+		$page_user = ! empty( $data['pageUser'] ) ? absint( $data['pageUser'] ) : 1;
+
+		if ( ! empty( $data['pageTitle'] ) ) {
+			$post_title = sanitize_text_field( $data['pageTitle'] );
+		} else {
+			$post_title = sprintf( '%s - %s', __( 'Page created via AINSYS system', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ), $this->sanitize_field( $page_slug ) );
+		}
+
+		$post_template = ! empty( $data['pageTemplate'] ) ? $this->sanitize_field( $data['pageTemplate'] ) : '';
+		$post_role     = $this->sanitize_field( $data['pageRole'] );
+
+		$post_content = $this->get_template_content( $post_template, $post_role );
+
+		$post_args = [
+			'post_title'   => $post_title,
+			'post_content' => $post_content,
+			'post_name'    => $this->sanitize_field( $page_slug ),
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_author'  => $page_user,
+			'meta_input'   => [
+				'_ainsys_entity_data'   => $data,
+				'_ainsys_page_lang'     => sanitize_text_field( $data['pageLang'] ),
+				'_ainsys_page_role'     => sanitize_text_field( $data['pageRole'] ),
+				'_ainsys_page_template' => sanitize_text_field( $data['pageTemplate'] ),
+			],
+		];
+
+		$result = wp_insert_post( $post_args, true, false );
+
+		if ( ! is_wp_error( $result ) ) {
+
+			$entity_data = get_post_meta( $result, '_ainsys_entity_data', true );
+
+			foreach ( $entity_data as $key => $val ) {
+				if ( 'pageId' === $key ) {
+					$entity_data[ $key ] = $result;
+				}
 			}
 
-			update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
-
-			Logger::save(
-				[
-					'object_id'       => $page->ID,
-					'entity'          => self::$entity,
-					'request_action'  => $action,
-					'request_type'    => 'updated data',
-					'request_data'    => $current_data,
-					'server_response' => $update_data,
-				]
-			);
-
-			$response = __( 'The action has been completed successfully. Content imported', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
-		} else {
-
-			$response = __( 'Error: The page was not found or it does not exist', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN );
-
-			Logger::save(
-				[
-					'object_id'       => 0,
-					'entity'          => self::$entity,
-					'request_action'  => $action,
-					'request_type'    => 'updated data',
-					'request_data'    => $data,
-					'server_response' => $response,
-					'error'           => 1,
-				]
-			);
-
+			update_post_meta( $result, '_ainsys_entity_data', $entity_data );
 		}
 
-		return $response;
+		return $this->get_message( $result, $data, self::$entity, $action );
+
+	}
+
+
+	protected function update_entity_data( array $data, $action, $object_id ): string {
+
+		if ( empty( $data['pageUrl'] ) ) {
+			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id );
+
+			return $this->handle_error( $data, '', $error, self::$entity, $action );
+		}
+
+		if ( empty( $data['pageRole'] ) ) {
+			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id );
+
+			return $this->handle_error( $data, '', $error, self::$entity, $action );
+		}
+
+		if ( empty( $data['pageLang'] ) ) {
+			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id );
+
+			return $this->handle_error( $data, '', $error, self::$entity, $action );
+		}
+
+		[ $page_slug, $page ] = $this->get_page( $data['pageUrl'] );
+
+		if ( ! $page ) {
+
+			return $this->handle_error( $data, '', __( 'Error: Page not found or it does not exist', AINSYS_CONNECTOR_TEXTDOMAIN ), self::$entity, $action );
+		}
+
+		$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
+
+		if ( empty( $current_data ) ) {
+			$update_data = $data;
+		} else {
+			$update_data = array_replace( $current_data, $data );
+		}
+
+		$result = update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
+
+		return $this->get_message( $result, $update_data, self::$entity, $action );
 	}
 
 
@@ -322,6 +349,90 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 		return str_replace( $keys, $values, $text );
 
+	}
+
+
+	/**
+	 * @param        $object_id
+	 * @param        $action
+	 * @param  array $data
+	 * @param        $message
+	 *
+	 * @return string|void
+	 */
+	protected function get_error_data( $object_id, $action, array $data, $message ) {
+
+
+		Logger::save(
+			[
+				'object_id'       => $object_id,
+				'entity'          => self::$entity,
+				'request_action'  => $action,
+				'request_type'    => 'incoming',
+				'request_data'    => serialize( $data ),
+				'server_response' => $message,
+				'error'           => 1,
+			]
+		);
+
+		return $message;
+	}
+
+
+	/**
+	 * @param $field
+	 *
+	 * @return string
+	 */
+	protected function sanitize_field( $field ): string {
+
+		$field = rawurlencode( urldecode( $field ) );
+
+		return trim( str_replace( '/', '', sanitize_text_field( $field ) ) );
+	}
+
+
+	/**
+	 * @param  string $post_template
+	 * @param  string $post_role
+	 *
+	 * @return string
+	 */
+	protected function get_template_content( string $post_template, string $post_role ): string {
+
+		$args = [
+			'meta_query'     => [
+				'relation' => 'AND',
+				[
+					'key'   => '_ainsys_template_fields_template_name',
+					'value' => $post_template,
+				],
+				[
+					'key'   => '_ainsys_template_fields_template_role',
+					'value' => $post_role,
+				],
+			],
+			'post_type'      => 'ainsys_template',
+			'posts_per_page' => 200,
+		];
+
+		$templates = get_posts( $args );
+
+		return $templates[0]->post_content ? : '';
+	}
+
+
+	/**
+	 * @param $page_url
+	 *
+	 * @return array
+	 */
+	protected function get_page( $page_url ): array {
+
+		$page_slug = wp_parse_url( '//' . $page_url, PHP_URL_PATH );
+		$page      = get_page_by_path( $page_slug );
+
+		return [ $page_slug, $page ];
 	}
 
 }
