@@ -35,7 +35,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 	protected function create( array $data, string $action ): string {
 
-		$response = '';
+		$response = [];
 
 		if ( is_multisite() ) {
 
@@ -71,7 +71,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	 */
 	protected function update( $data, $action, $object_id ): string {
 
-		$response = '';
+		$response = [];
 
 		if ( is_multisite() ) {
 
@@ -113,30 +113,63 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 
 	//TODO: сделать проверку на главную страницу
-	protected function create_entity_data( array $data, $action ): string {
+	protected function create_entity_data( array $data, $action ): array {
 
 		if ( empty( $data['pageUrl'] ) ) {
-			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl' );
-
-			return $this->handle_error( $data, '', $error, self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id ),
+					self::$entity,
+					$action
+				),
+			];
 		}
 
 		if ( empty( $data['pageRole'] ) ) {
-			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole' );
 
-			return $this->handle_error( $data, '', $error, self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id ),
+					self::$entity,
+					$action
+				),
+			];;
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
-			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang' );
 
-			return $this->handle_error( $data, '', $error, self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id ),
+					self::$entity,
+					$action
+				),
+			];
+
 		}
 
 		[ $page_slug, $page ] = $this->get_page( $data['pageUrl'] );
 
 		if ( $page ) {
-			return $this->handle_error( $data, '', __( 'Error: Page with this URL already exist', AINSYS_CONNECTOR_TEXTDOMAIN ), self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					__( 'Error: Page with this URL already exist', AINSYS_CONNECTOR_TEXTDOMAIN ),
+					self::$entity,
+					$action
+				),
+			];
 		}
 
 		$page_user = ! empty( $data['pageUser'] ) ? absint( $data['pageUser'] ) : 1;
@@ -182,36 +215,73 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 			update_post_meta( $result, '_ainsys_entity_data', $entity_data );
 		}
 
-		return $this->get_message( $result, $data, self::$entity, $action );
+		return [
+			'id'      => is_wp_error( $result ) ? 0 : $result,
+			'message' => $this->get_message( $result, $data, self::$entity, $action ),
+		];
 
 	}
 
 
-	protected function update_entity_data( array $data, $action, $object_id ): string {
+	protected function update_entity_data( array $data, $action, $object_id ): array {
 
 		if ( empty( $data['pageUrl'] ) ) {
-			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id );
-
-			return $this->handle_error( $data, '', $error, self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id ),
+					self::$entity,
+					$action
+				),
+			];
 		}
 
 		if ( empty( $data['pageRole'] ) ) {
-			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id );
 
-			return $this->handle_error( $data, '', $error, self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id ),
+					self::$entity,
+					$action
+				),
+			];;
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
-			$error = sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id );
 
-			return $this->handle_error( $data, '', $error, self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id ),
+					self::$entity,
+					$action
+				),
+			];
+
 		}
 
 		[ $page_slug, $page ] = $this->get_page( $data['pageUrl'] );
 
 		if ( ! $page ) {
 
-			return $this->handle_error( $data, '', __( 'Error: Page not found or it does not exist', AINSYS_CONNECTOR_TEXTDOMAIN ), self::$entity, $action );
+			return [
+				'id'      => 0,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					__( 'Error: Page not found or it does not exist', AINSYS_CONNECTOR_TEXTDOMAIN ),
+					self::$entity,
+					$action
+				),
+			];
+
 		}
 
 		$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
@@ -224,7 +294,11 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 		$result = update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
 
-		return $this->get_message( $result, $update_data, self::$entity, $action );
+		return [
+			'id'      => $result ? $page->ID : 0,
+			'message' => $this->get_message( $result, $update_data, self::$entity, $action ),
+		];
+
 	}
 
 
