@@ -33,7 +33,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	}
 
 
-	protected function create( array $data, string $action ): string {
+	protected function create( array $data, string $action ): array {
 
 		$response = [];
 
@@ -69,7 +69,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	 *
 	 * @return string
 	 */
-	protected function update( $data, $action, $object_id ): string {
+	protected function update( $data, $action, $object_id ): array {
 
 		$response = [];
 
@@ -98,17 +98,20 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	}
 
 
-	protected function delete( $object_id, $data, $action ): string {
+	protected function delete( $object_id, $data, $action ): array {
 
 		// TODO: Implement delete() method.
+		return [
+			'id'      => 0,
+			'message' => $this->handle_error(
+				$data,
+				'',
+				__( 'Error: It is impossible to delete content, the DELETE method does not work', AINSYS_CONNECTOR_TEXTDOMAIN ),
+				self::$entity,
+				$action
+			),
+		];
 
-		return $this->handle_error(
-			$data,
-			'',
-			__( 'Error: It is impossible to delete content, the DELETE method does not work', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ),
-			self::$entity,
-			$action
-		);
 	}
 
 
