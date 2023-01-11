@@ -414,7 +414,7 @@ class Templates implements Hooked {
 				'with_front' => false,
 			],
 			'menu_icon'     => 'dashicons-superhero-alt',
-			'menu_position' => 57,
+			'menu_position' => 58,
 			'supports'      => [ 'title', 'editor', 'custom-fields' ],
 		];
 		register_post_type( 'ainsys_template', $args );
