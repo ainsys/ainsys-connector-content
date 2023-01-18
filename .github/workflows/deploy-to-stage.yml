@@ -19,7 +19,7 @@ jobs:
         with:
           type: 'zip'
           filename: ${{ github.event.repository.name }}.zip
-          exclusions: '*.git* /*node_modules/* .editorconfig /*src/* .eslintrc.json .prettierrc.json gulpfile.js .stylelintrc.json package.json package-lock.json'
+          exclusions: '*.git* /*node_modules/* .editorconfig /*src/* .eslintrc.json .prettierrc.json gulpfile.js .stylelintrc.json package.json package-lock.json CHANGELOG.md README.md'
       - name: Store artifact for distribution
         uses: actions/upload-artifact@v3
         with:
@@ -56,6 +56,8 @@ jobs:
     if: ${{ github.event.pull_request.merged }}
     runs-on: "ubuntu-latest"
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
         with:
@@ -71,4 +73,4 @@ jobs:
             **/src/**
             CHANGELOG.md
             README.md
-            readme.txt*
+            readme.txt
