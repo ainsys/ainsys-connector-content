@@ -45,5 +45,9 @@ class Plugin implements Hooked {
 		}
 	}
 
+	public static function flush_rewrite_rules(): void {
+		flush_rewrite_rules();
+	}
+
 
 }

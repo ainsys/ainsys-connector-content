@@ -81,3 +81,5 @@ function enqueue_to_be_loaded( $sub_plugins = [] ) {
 
 
 add_filter( 'ainsys_child_plugins_to_be_loaded', __NAMESPACE__ . '\enqueue_to_be_loaded' );
+
+register_activation_hook( __FILE__, array( Plugin::class, 'flush_rewrite_rules' )  );
