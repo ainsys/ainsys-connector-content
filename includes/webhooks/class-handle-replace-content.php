@@ -124,7 +124,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 				'message' => $this->handle_error(
 					$data,
 					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id ),
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl'),
 					self::$entity,
 					$action
 				),
@@ -138,11 +138,11 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 				'message' => $this->handle_error(
 					$data,
 					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id ),
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole'),
 					self::$entity,
 					$action
 				),
-			];;
+			];
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
@@ -152,7 +152,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 				'message' => $this->handle_error(
 					$data,
 					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id ),
+					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang'),
 					self::$entity,
 					$action
 				),
