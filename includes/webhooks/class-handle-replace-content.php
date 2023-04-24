@@ -35,29 +35,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 	protected function create( array $data, string $action ): array {
 
-		$response = [];
-
-		if ( is_multisite() ) {
-
-			$sites = get_sites( [
-				'fields'        => 'ids',
-				'no_found_rows' => false,
-			] );
-
-			foreach ( $sites as $site_id ) {
-				switch_to_blog( $site_id );
-
-				$response = $this->create_entity_data( $data, $action );
-
-				restore_current_blog();
-
-			}
-
-		} else {
-			$response = $this->create_entity_data( $data, $action );
-		}
-
-		return $response;
+		return $this->create_entity_data( $data, $action );
 
 	}
 
@@ -67,33 +45,11 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	 * @param $action
 	 * @param $object_id
 	 *
-	 * @return string
+	 * @return array
 	 */
 	protected function update( $data, $action, $object_id ): array {
 
-		$response = [];
-
-		if ( is_multisite() ) {
-
-			$sites = get_sites( [
-				'fields'        => 'ids',
-				'no_found_rows' => false,
-			] );
-
-			foreach ( $sites as $site_id ) {
-				switch_to_blog( $site_id );
-
-				$response = $this->update_entity_data( $data, $action, $object_id );
-
-				restore_current_blog();
-
-			}
-
-		} else {
-			$response = $this->update_entity_data( $data, $action, $object_id );
-		}
-
-		return $response;
+		return $this->update_entity_data( $data, $action, $object_id );
 
 	}
 
@@ -345,7 +301,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 
 		$data = get_post_meta( get_the_ID(), '_ainsys_entity_data', true );
-
+		//error_log( print_r( $data, 1 ) );
 		if ( $data ) {
 
 			$text = $this->get_data_ainsys( $data, $text );
