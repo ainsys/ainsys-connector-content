@@ -98,7 +98,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 					self::$entity,
 					$action
 				),
-			];;
+			];
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
@@ -208,7 +208,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 					self::$entity,
 					$action
 				),
-			];;
+			];
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
