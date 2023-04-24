@@ -462,7 +462,13 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	 */
 	protected function get_page( $page_url ): array {
 
-		$page_slug = wp_parse_url( '//' . $page_url, PHP_URL_PATH );
+		if ( false !== strpos( $page_url, 'http' ) ) {
+			$url = $page_url;
+		} else {
+			$url = '//' . $page_url;
+		}
+
+		$page_slug = wp_parse_url( $url, PHP_URL_PATH );
 		$page      = get_page_by_path( $page_slug );
 
 		return [ $page_slug, $page ];
