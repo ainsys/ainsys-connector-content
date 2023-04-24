@@ -248,14 +248,14 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 		if ( empty( $current_data ) ) {
 			$update_data = $data;
 		} else {
-			$update_data = array_replace( $current_data, $data );
+			$update_data = array_intersect( $data, array_replace( $current_data, $data ) );
 		}
 
-		$result = update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
+		update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
 
 		return [
-			'id'      => $result ? $page->ID : 0,
-			'message' => $this->get_message( $result, $update_data, self::$entity, $action ),
+			'id'      => $page->ID,
+			'message' => $this->get_message( $page->ID, $update_data, self::$entity, $action ),
 		];
 
 	}
