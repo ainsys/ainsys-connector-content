@@ -75,45 +75,15 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	protected function create_entity_data( array $data, $action ): array {
 
 		if ( empty( $data['pageUrl'] ) ) {
-			return [
-				'id'      => 0,
-				'message' => $this->handle_error(
-					$data,
-					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id ),
-					self::$entity,
-					$action
-				),
-			];
+			return $this->has_important_data( $data, 0, $action, 'pageUrl' );
 		}
 
 		if ( empty( $data['pageRole'] ) ) {
-
-			return [
-				'id'      => 0,
-				'message' => $this->handle_error(
-					$data,
-					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id ),
-					self::$entity,
-					$action
-				),
-			];
+			return $this->has_important_data( $data, 0, $action, 'pageRole' );
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
-
-			return [
-				'id'      => 0,
-				'message' => $this->handle_error(
-					$data,
-					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id ),
-					self::$entity,
-					$action
-				),
-			];
-
+			return $this->has_important_data( $data, 0, $action, 'pageLang' );
 		}
 
 		[ $page_slug, $page ] = $this->get_page( $data['pageUrl'] );
@@ -139,14 +109,11 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 			$post_title = sprintf( '%s - %s', __( 'Page created via AINSYS system', AINSYS_CONNECTOR_CONTENT_TEXTDOMAIN ), $this->sanitize_field( $page_slug ) );
 		}
 
-		$post_template = ! empty( $data['pageTemplate'] ) ? $this->sanitize_field( $data['pageTemplate'] ) : '';
-		$post_role     = $this->sanitize_field( $data['pageRole'] );
-
-		$post_content = $this->get_template_content( $post_template, $post_role );
+		$post_content = $this->get_template( $data );
 
 		$post_args = [
 			'post_title'   => $post_title,
-			'post_content' => $post_content,
+			'post_content' => $post_content ? : '',
 			'post_name'    => $this->sanitize_field( $page_slug ),
 			'post_status'  => 'publish',
 			'post_type'    => 'page',
@@ -185,45 +152,15 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 	protected function update_entity_data( array $data, $action, $object_id ): array {
 
 		if ( empty( $data['pageUrl'] ) ) {
-			return [
-				'id'      => 0,
-				'message' => $this->handle_error(
-					$data,
-					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageUrl', $object_id ),
-					self::$entity,
-					$action
-				),
-			];
+			return $this->has_important_data( $data, $object_id, $action, 'pageUrl' );
 		}
 
 		if ( empty( $data['pageRole'] ) ) {
-
-			return [
-				'id'      => 0,
-				'message' => $this->handle_error(
-					$data,
-					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageRole', $object_id ),
-					self::$entity,
-					$action
-				),
-			];
+			return $this->has_important_data( $data, $object_id, $action, 'pageRole' );
 		}
 
 		if ( empty( $data['pageLang'] ) ) {
-
-			return [
-				'id'      => 0,
-				'message' => $this->handle_error(
-					$data,
-					'',
-					sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), 'pageLang', $object_id ),
-					self::$entity,
-					$action
-				),
-			];
-
+			return $this->has_important_data( $data, $object_id, $action, 'pageLang' );
 		}
 
 		[ $page_slug, $page ] = $this->get_page( $data['pageUrl'] );
@@ -243,6 +180,8 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 		}
 
+		$post_content = $this->get_template( $data );
+
 		$current_data = get_post_meta( $page->ID, '_ainsys_entity_data', true );
 
 		if ( empty( $current_data ) ) {
@@ -251,11 +190,36 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 			$update_data = array_intersect( $data, array_replace( $current_data, $data ) );
 		}
 
-		update_post_meta( $page->ID, '_ainsys_entity_data', $update_data );
+		$post_args = [
+			'ID'           => $page->ID,
+			'post_content' => $post_content,
+			'meta_input'   => [
+				'_ainsys_entity_data'   => $update_data,
+				'_ainsys_page_lang'     => sanitize_text_field( $data['pageLang'] ),
+				'_ainsys_page_role'     => sanitize_text_field( $data['pageRole'] ),
+				'_ainsys_page_template' => sanitize_text_field( $data['pageTemplate'] ),
+			],
+		];
+
+		$result = wp_update_post( $post_args, true, false );
+
+		if ( is_wp_error( $result ) ) {
+			return [
+				'id'      => $result,
+				'message' => $this->handle_error(
+					$data,
+					'',
+					__( 'Error: Updating the content occurred with an error.', AINSYS_CONNECTOR_TEXTDOMAIN ),
+					self::$entity,
+					$action
+				),
+			];
+
+		}
 
 		return [
-			'id'      => $page->ID,
-			'message' => $this->get_message( $page->ID, $update_data, self::$entity, $action ),
+			'id'      => $result,
+			'message' => $this->get_message( $result, $update_data, self::$entity, $action ),
 		];
 
 	}
@@ -301,7 +265,7 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 
 		$data = get_post_meta( get_the_ID(), '_ainsys_entity_data', true );
-		//error_log( print_r( $data, 1 ) );
+
 		if ( $data ) {
 
 			$text = $this->get_data_ainsys( $data, $text );
@@ -426,6 +390,20 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 
 
 	/**
+	 * @param  array $data
+	 *
+	 * @return string
+	 */
+	protected function get_template( array $data ): string {
+
+		$post_template = ! empty( $data['pageTemplate'] ) ? $this->sanitize_field( $data['pageTemplate'] ) : '';
+		$post_role     = $this->sanitize_field( $data['pageRole'] );
+
+		return $this->get_template_content( $post_template, $post_role );
+	}
+
+
+	/**
 	 * @param  string $post_template
 	 * @param  string $post_role
 	 *
@@ -472,6 +450,29 @@ class Handle_Replace_Content extends Handle implements Hooked, Webhook_Handler {
 		$page      = get_page_by_path( $page_slug );
 
 		return [ $page_slug, $page ];
+	}
+
+
+	/**
+	 * @param  array $data
+	 * @param        $object_id
+	 * @param        $action
+	 * @param        $item
+	 *
+	 * @return array
+	 */
+	protected function has_important_data( array $data, $object_id, $action, $item ): array {
+
+		return [
+			'id'      => 0,
+			'message' => $this->handle_error(
+				$data,
+				'',
+				sprintf( __( 'Error: %s is missing', AINSYS_CONNECTOR_TEXTDOMAIN ), $item, $object_id ),
+				self::$entity,
+				$action
+			),
+		];
 	}
 
 }
