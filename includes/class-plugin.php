@@ -28,7 +28,7 @@ class Plugin implements Hooked {
 		$this->components['replace_content_process']   = $this->di_container->resolve( Process_Content::class );
 
 		$this->components['replace_content_templates'] = $this->di_container->resolve( Templates::class );
-		$this->components['replace_content_templates'] = $this->di_container->resolve( Shortcodes::class );
+		$this->components['replace_content_shortcodes'] = $this->di_container->resolve( Shortcodes::class );
 	}
 
 

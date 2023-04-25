@@ -417,6 +417,7 @@ class Templates implements Hooked {
 			'menu_position' => 58,
 			'supports'      => [ 'title', 'editor', 'custom-fields' ],
 		];
+
 		register_post_type( 'ainsys_template', $args );
 
 	}
