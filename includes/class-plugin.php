@@ -7,10 +7,7 @@ use Ainsys\Connector\Content\Webhooks\Handle_Replace_Content;
 use Ainsys\Connector\Content\WP\Process_Content;
 use Ainsys\Connector\Master\DI_Container;
 use Ainsys\Connector\Master\Hooked;
-use Ainsys\Connector\Master\Logger;
 use Ainsys\Connector\Master\Plugin_Common;
-use Ainsys\Connector\Master\Settings\Settings;
-use Ainsys\Connector\Master\Settings\Admin_UI;
 
 class Plugin implements Hooked {
 
@@ -31,6 +28,7 @@ class Plugin implements Hooked {
 		$this->components['replace_content_process']   = $this->di_container->resolve( Process_Content::class );
 
 		$this->components['replace_content_templates'] = $this->di_container->resolve( Templates::class );
+		$this->components['replace_content_templates'] = $this->di_container->resolve( Shortcodes::class );
 	}
 
 
